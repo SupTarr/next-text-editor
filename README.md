@@ -1,36 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rich Text Editor Playground
 
-## Getting Started
+A Next.js playground for comparing three rich-text editor libraries in one
+interface:
 
-First, run the development server:
+- [Tiptap](https://tiptap.dev/)
+- [Lexical](https://lexical.dev/)
+- [Novel](https://novel.sh/)
+
+Switch between the editors to compare their toolbar behavior and generated
+HTML. The demo is intended for experimenting with editor integrations and
+selecting a suitable foundation for a larger application.
+
+## Features
+
+- Compare Tiptap, Lexical, and Novel side by side through tabs.
+- Edit formatted content with bold, italic, underline, bullet-list, and
+  numbered-list controls.
+- Clear formatting from the current selection or document content.
+- Copy the active editor's generated HTML to the clipboard.
+- Display live GitHub star counts for each editor repository when the GitHub
+  API is available.
+- Start with a Thai-language sample document that includes common inline and
+  list formatting.
+
+## Tech stack
+
+- Next.js 16 with the App Router
+- React 19 and TypeScript
+- Tailwind CSS 4
+- Tiptap 3
+- Lexical 0.53
+- Novel 1
+- Lucide React icons
+
+## Requirements
+
+- Node.js 20 or newer
+- npm 10 or newer
+
+## Getting started
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Create a production build |
+| `npm run start` | Start the production server |
+| `npm run lint` | Run ESLint |
 
-## Learn More
+## Project structure
 
-To learn more about Next.js, take a look at the following resources:
+```text
+src/
+├── app/
+│   ├── globals.css       # Global styles and editor typography
+│   ├── layout.tsx        # Root layout and metadata
+│   └── page.tsx          # Editor comparison screen
+└── components/
+    ├── LexicalEditor.tsx # Lexical editor implementation
+    ├── NovelEditor.tsx   # Novel editor implementation
+    └── TiptapEditor.tsx  # Tiptap editor implementation
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Each editor component accepts the same basic interface:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```ts
+interface EditorProps {
+  initialContent?: string;
+  onChange?: (html: string) => void;
+  helperText?: string;
+}
+```
 
-## Deploy on Vercel
+The page dynamically imports the editor components with server-side rendering
+disabled because the editor libraries depend on browser APIs.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## How it works
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The home page keeps separate HTML state for each editor. Changing tabs switches
+the active editor without losing the content entered in the other editors.
+Every editor reports updates through its `onChange` callback, and the Copy
+button copies the active editor's HTML string using the browser Clipboard API.
+
+GitHub star counts are fetched from the public GitHub REST API when the page
+loads. Static fallback values keep the interface usable if the request fails or
+is rate-limited.
+
+## Production build
+
+Validate the application with:
+
+```bash
+npm run lint
+npm run build
+```
+
+To run the resulting build:
+
+```bash
+npm run start
+```
+
+## License
+
+This project is private and does not currently declare a public license.
