@@ -1,10 +1,17 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  LexicalComposer,
-  type InitialConfigType,
-} from '@lexical/react/LexicalComposer';
+import { useCallback, useEffect, useRef, useState, type JSX, type ReactNode } from 'react';
+import * as LexicalComposerModule from '@lexical/react/LexicalComposer';
+import type { InitialConfigType } from '@lexical/react/LexicalComposer';
+
+const LexicalComposer = (
+  LexicalComposerModule as unknown as {
+    LexicalComposer: (props: {
+      initialConfig: InitialConfigType;
+      children: ReactNode;
+    }) => JSX.Element;
+  }
+).LexicalComposer;
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
