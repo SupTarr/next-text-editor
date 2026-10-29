@@ -167,37 +167,6 @@ export default function Home() {
               ))}
             </div>
           </div>
-
-          {/* All GitHub Repositories Link Row */}
-          <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 text-xs">
-            <div className="flex items-center gap-1.5 text-slate-500 font-medium">
-              <GithubIcon className="w-3.5 h-3.5 text-slate-700" />
-              <span>GitHub Repositories:</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {LIBRARIES.map((lib) => (
-                <a
-                  key={lib.id}
-                  href={lib.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border transition-all ${
-                    activeTab === lib.id
-                      ? 'bg-slate-100/90 text-slate-900 border-slate-300 shadow-2xs'
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border-slate-200'
-                  }`}
-                  title={`Visit ${lib.fullName} on GitHub`}
-                >
-                  <span className="font-mono text-[11px]">{lib.fullName}</span>
-                  <span className="inline-flex items-center text-amber-500 font-semibold gap-0.5 pl-1 border-l border-slate-200">
-                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                    <span className="text-slate-700 text-[11px]">{stars[lib.id]}</span>
-                  </span>
-                  <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
-                </a>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Text Editor Card */}
