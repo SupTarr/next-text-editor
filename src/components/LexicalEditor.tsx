@@ -248,7 +248,7 @@ function ToolbarPlugin() {
         title="Clear formatting"
         aria-label="Clear formatting"
       >
-        <Eraser className="w-3.5 h-3.5 stroke-[2] text-slate-600" />
+        <Eraser className="w-3.5 h-3.5 stroke-2 text-slate-600" />
         <span className="text-xs font-medium text-slate-700">Clear formatting</span>
       </button>
     </div>
@@ -363,7 +363,7 @@ export default function LexicalEditor({
           <div className="relative">
             <RichTextPlugin
               contentEditable={
-                <ContentEditable className="min-h-[160px] p-5 text-slate-800 text-[15px] leading-relaxed outline-none lexical-content" />
+                <ContentEditable className="min-h-40 p-5 text-slate-800 text-[15px] leading-relaxed outline-none lexical-content" />
               }
               placeholder={
                 <div className="pointer-events-none absolute left-5 top-5 text-[15px] text-slate-400 select-none">

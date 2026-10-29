@@ -132,7 +132,7 @@ function NovelToolbar() {
         title="Clear formatting"
         aria-label="Clear formatting"
       >
-        <Eraser className="w-3.5 h-3.5 stroke-[2] text-slate-600" />
+        <Eraser className="w-3.5 h-3.5 stroke-2 text-slate-600" />
         <span className="text-xs font-medium text-slate-700">Clear formatting</span>
       </button>
     </div>

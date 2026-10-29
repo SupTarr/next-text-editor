@@ -1,12 +1,75 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { Star, ExternalLink } from 'lucide-react';
+
+function GithubIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+      />
+    </svg>
+  );
+}
+
+type TabType = 'tiptap' | 'lexical' | 'novel';
+
+interface LibraryMeta {
+  id: TabType;
+  name: string;
+  fullName: string;
+  repo: string;
+  url: string;
+  defaultStars: string;
+  version: string;
+  badge: string;
+  title: string;
+}
+
+const LIBRARIES: LibraryMeta[] = [
+  {
+    id: 'tiptap',
+    name: 'Tiptap',
+    fullName: 'ueberdosis/tiptap',
+    repo: 'ueberdosis/tiptap',
+    url: 'https://github.com/ueberdosis/tiptap',
+    defaultStars: '38.9k',
+    version: 'Tiptap v2 & Tailwind',
+    badge: 'Powered by Tiptap',
+    title: 'Tiptap Text Editor',
+  },
+  {
+    id: 'lexical',
+    name: 'Lexical',
+    fullName: 'meta/lexical',
+    repo: 'meta/lexical',
+    url: 'https://github.com/meta/lexical',
+    defaultStars: '24.0k',
+    version: 'Meta Lexical v0.53 & Tailwind',
+    badge: 'Powered by Lexical',
+    title: 'Lexical Text Editor',
+  },
+  {
+    id: 'novel',
+    name: 'Novel.sh',
+    fullName: 'steven-tey/novel',
+    repo: 'steven-tey/novel',
+    url: 'https://github.com/steven-tey/novel',
+    defaultStars: '16.5k',
+    version: 'Novel v1.0.2 & Tailwind',
+    badge: 'Powered by novel.sh',
+    title: 'Novel.sh Text Editor',
+  },
+];
 
 const TiptapEditor = dynamic(() => import('@/components/TiptapEditor'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[220px] rounded-xl border border-slate-200 bg-slate-50/50 animate-pulse flex items-center justify-center text-slate-400 text-sm">
+    <div className="w-full h-55 rounded-xl border border-slate-200 bg-slate-50/50 animate-pulse flex items-center justify-center text-slate-400 text-sm">
       Loading Tiptap editor...
     </div>
   ),
@@ -15,7 +78,7 @@ const TiptapEditor = dynamic(() => import('@/components/TiptapEditor'), {
 const LexicalEditor = dynamic(() => import('@/components/LexicalEditor'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[220px] rounded-xl border border-slate-200 bg-slate-50/50 animate-pulse flex items-center justify-center text-slate-400 text-sm">
+    <div className="w-full h-55 rounded-xl border border-slate-200 bg-slate-50/50 animate-pulse flex items-center justify-center text-slate-400 text-sm">
       Loading Lexical editor...
     </div>
   ),
@@ -24,18 +87,46 @@ const LexicalEditor = dynamic(() => import('@/components/LexicalEditor'), {
 const NovelEditor = dynamic(() => import('@/components/NovelEditor'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[220px] rounded-xl border border-slate-200 bg-slate-50/50 animate-pulse flex items-center justify-center text-slate-400 text-sm">
+    <div className="w-full h-55 rounded-xl border border-slate-200 bg-slate-50/50 animate-pulse flex items-center justify-center text-slate-400 text-sm">
       Loading Novel editor...
     </div>
   ),
 });
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'tiptap' | 'lexical' | 'novel'>('tiptap');
+  const [activeTab, setActiveTab] = useState<TabType>('tiptap');
   const [tiptapHtml, setTiptapHtml] = useState<string>('');
   const [lexicalHtml, setLexicalHtml] = useState<string>('');
   const [novelHtml, setNovelHtml] = useState<string>('');
   const [showRawHtml, setShowRawHtml] = useState<boolean>(false);
+  const [stars, setStars] = useState<Record<TabType, string>>({
+    tiptap: '38.9k',
+    lexical: '24.0k',
+    novel: '16.5k',
+  });
+
+  useEffect(() => {
+    async function fetchStars() {
+      for (const lib of LIBRARIES) {
+        try {
+          const res = await fetch(`https://api.github.com/repos/${lib.repo}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (typeof data.stargazers_count === 'number') {
+              const count = data.stargazers_count;
+              const formatted = count >= 1000 ? `${(count / 1000).toFixed(1)}k` : `${count}`;
+              setStars((prev) => ({ ...prev, [lib.id]: formatted }));
+            }
+          }
+        } catch {
+          // Keep static default on network or rate limit failure
+        }
+      }
+    }
+    fetchStars();
+  }, []);
+
+  const currentLib = LIBRARIES.find((lib) => lib.id === activeTab) || LIBRARIES[0];
 
   return (
     <main className="min-h-screen bg-slate-100/70 py-10 px-4 sm:px-6 lg:px-8">
@@ -54,59 +145,87 @@ export default function Home() {
 
             {/* Library Selector Tabs */}
             <div className="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200 self-start sm:self-auto">
-              <button
-                type="button"
-                onClick={() => setActiveTab('tiptap')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-                  activeTab === 'tiptap'
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Tiptap
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('lexical')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-                  activeTab === 'lexical'
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Lexical (Meta)
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('novel')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-                  activeTab === 'novel'
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Novel.sh
-              </button>
+              {LIBRARIES.map((lib) => (
+                <button
+                  key={lib.id}
+                  type="button"
+                  onClick={() => setActiveTab(lib.id)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+                    activeTab === lib.id
+                      ? 'bg-white text-slate-900 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <span>{lib.name}</span>
+                  <span className="inline-flex items-center text-amber-500 font-medium text-[11px] gap-0.5">
+                    <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                    <span className={activeTab === lib.id ? 'text-slate-700' : 'text-slate-500'}>
+                      {stars[lib.id]}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* All GitHub Repositories Link Row */}
+          <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 text-xs">
+            <div className="flex items-center gap-1.5 text-slate-500 font-medium">
+              <GithubIcon className="w-3.5 h-3.5 text-slate-700" />
+              <span>GitHub Repositories:</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {LIBRARIES.map((lib) => (
+                <a
+                  key={lib.id}
+                  href={lib.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border transition-all ${
+                    activeTab === lib.id
+                      ? 'bg-slate-100/90 text-slate-900 border-slate-300 shadow-2xs'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border-slate-200'
+                  }`}
+                  title={`Visit ${lib.fullName} on GitHub`}
+                >
+                  <span className="font-mono text-[11px]">{lib.fullName}</span>
+                  <span className="inline-flex items-center text-amber-500 font-semibold gap-0.5 pl-1 border-l border-slate-200">
+                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    <span className="text-slate-700 text-[11px]">{stars[lib.id]}</span>
+                  </span>
+                  <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+                </a>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Text Editor Card */}
         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between mb-3">
-            <label className="block text-sm font-semibold text-slate-800">
-              {activeTab === 'tiptap'
-                ? 'Tiptap Text Editor'
-                : activeTab === 'lexical'
-                ? 'Lexical Text Editor'
-                : 'Novel.sh Text Editor'}
-            </label>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium border border-slate-200">
-              {activeTab === 'tiptap'
-                ? 'Powered by Tiptap'
-                : activeTab === 'lexical'
-                ? 'Powered by Lexical'
-                : 'Powered by novel.sh'}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <label className="block text-sm font-semibold text-slate-800">
+                {currentLib.title}
+              </label>
+              <a
+                href={currentLib.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 rounded-lg border border-slate-200 transition-colors group"
+                title={`Open ${currentLib.fullName} on GitHub`}
+              >
+                <GithubIcon className="w-3.5 h-3.5 text-slate-700 group-hover:text-slate-900" />
+                <span className="font-mono text-xs">{currentLib.fullName}</span>
+                <span className="inline-flex items-center text-amber-500 font-semibold gap-0.5 pl-1.5 border-l border-slate-200">
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  <span className="text-slate-700">{stars[activeTab]}</span>
+                </span>
+                <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-slate-600" />
+              </a>
+            </div>
+
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium border border-slate-200 self-start sm:self-auto">
+              {currentLib.badge}
             </span>
           </div>
 
@@ -143,13 +262,15 @@ export default function Home() {
             >
               {showRawHtml ? 'Hide HTML Output' : 'View HTML Output'}
             </button>
-            <span className="text-slate-400">
-              {activeTab === 'tiptap'
-                ? 'Tiptap v2 & Tailwind'
-                : activeTab === 'lexical'
-                ? 'Meta Lexical v0.53 & Tailwind'
-                : 'Novel v1.0.2 & Tailwind'}
-            </span>
+            <a
+              href={currentLib.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <span>{currentLib.version}</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
 
           {showRawHtml && (
