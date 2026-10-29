@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import {
   EditorRoot,
   EditorContent,
@@ -18,6 +19,9 @@ import {
   Code,
   Quote,
   Table as TableIcon,
+  Rows2,
+  Columns2,
+  Trash2,
 } from 'lucide-react';
 import { DEFAULT_SAMPLE_HTML } from '@/utils/markdown';
 
@@ -32,10 +36,24 @@ interface NovelEditorProps {
  */
 function NovelToolbar() {
   const { editor } = useEditor();
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    if (!editor) return;
+    const handler = () => setTick((t) => t + 1);
+    editor.on('transaction', handler);
+    editor.on('selectionUpdate', handler);
+    return () => {
+      editor.off('transaction', handler);
+      editor.off('selectionUpdate', handler);
+    };
+  }, [editor]);
 
   if (!editor) {
     return null;
   }
+
+  const isInTable = editor.isActive('table');
 
   const clearFormatting = () => {
     editor.chain().focus().unsetAllMarks().clearNodes().run();
@@ -50,6 +68,56 @@ function NovelToolbar() {
       }
     )
       .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+      .run();
+  };
+
+  const addRow = () => {
+    (
+      editor.chain().focus() as unknown as {
+        addRowAfter: () => { run: () => boolean };
+      }
+    )
+      .addRowAfter()
+      .run();
+  };
+
+  const deleteRow = () => {
+    (
+      editor.chain().focus() as unknown as {
+        deleteRow: () => { run: () => boolean };
+      }
+    )
+      .deleteRow()
+      .run();
+  };
+
+  const addColumn = () => {
+    (
+      editor.chain().focus() as unknown as {
+        addColumnAfter: () => { run: () => boolean };
+      }
+    )
+      .addColumnAfter()
+      .run();
+  };
+
+  const deleteColumn = () => {
+    (
+      editor.chain().focus() as unknown as {
+        deleteColumn: () => { run: () => boolean };
+      }
+    )
+      .deleteColumn()
+      .run();
+  };
+
+  const deleteTable = () => {
+    (
+      editor.chain().focus() as unknown as {
+        deleteTable: () => { run: () => boolean };
+      }
+    )
+      .deleteTable()
       .run();
   };
 
@@ -216,9 +284,10 @@ function NovelToolbar() {
       {/* Table */}
       <button
         type="button"
+        onMouseDown={(e) => e.preventDefault()}
         onClick={insertTable}
         className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-          editor.isActive('table')
+          isInTable
             ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
             : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
         }`}
@@ -227,6 +296,93 @@ function NovelToolbar() {
       >
         <TableIcon className="w-4 h-4 stroke-2" />
       </button>
+
+      {/* Add Row */}
+      <button
+        type="button"
+        disabled={!isInTable}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={addRow}
+        className={`h-8 px-2.5 rounded-md border flex items-center gap-1 text-xs font-medium transition-colors ${
+          isInTable
+            ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 active:bg-slate-100 shadow-2xs cursor-pointer'
+            : 'bg-white/50 border-slate-200/60 text-slate-400 shadow-2xs cursor-not-allowed opacity-50'
+        }`}
+        title={isInTable ? 'Add row below' : 'Add row (place cursor inside table first)'}
+        aria-label="Add row"
+      >
+        <Rows2 className="w-3.5 h-3.5 stroke-[2.2]" />
+        <span>+Row</span>
+      </button>
+
+      {/* Delete Row */}
+      <button
+        type="button"
+        disabled={!isInTable}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={deleteRow}
+        className={`h-8 px-2.5 rounded-md border flex items-center gap-1 text-xs font-medium transition-colors ${
+          isInTable
+            ? 'bg-white border-slate-200 text-slate-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 active:bg-rose-100 shadow-2xs cursor-pointer'
+            : 'bg-white/50 border-slate-200/60 text-slate-400 shadow-2xs cursor-not-allowed opacity-50'
+        }`}
+        title={isInTable ? 'Delete current row' : 'Delete row (place cursor inside table first)'}
+        aria-label="Delete row"
+      >
+        <Rows2 className="w-3.5 h-3.5 stroke-[2.2]" />
+        <span>-Row</span>
+      </button>
+
+      {/* Add Column */}
+      <button
+        type="button"
+        disabled={!isInTable}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={addColumn}
+        className={`h-8 px-2.5 rounded-md border flex items-center gap-1 text-xs font-medium transition-colors ${
+          isInTable
+            ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 active:bg-slate-100 shadow-2xs cursor-pointer'
+            : 'bg-white/50 border-slate-200/60 text-slate-400 shadow-2xs cursor-not-allowed opacity-50'
+        }`}
+        title={isInTable ? 'Add column after' : 'Add column (place cursor inside table first)'}
+        aria-label="Add column"
+      >
+        <Columns2 className="w-3.5 h-3.5 stroke-[2.2]" />
+        <span>+Col</span>
+      </button>
+
+      {/* Delete Column */}
+      <button
+        type="button"
+        disabled={!isInTable}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={deleteColumn}
+        className={`h-8 px-2.5 rounded-md border flex items-center gap-1 text-xs font-medium transition-colors ${
+          isInTable
+            ? 'bg-white border-slate-200 text-slate-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 active:bg-rose-100 shadow-2xs cursor-pointer'
+            : 'bg-white/50 border-slate-200/60 text-slate-400 shadow-2xs cursor-not-allowed opacity-50'
+        }`}
+        title={isInTable ? 'Delete current column' : 'Delete column (place cursor inside table first)'}
+        aria-label="Delete column"
+      >
+        <Columns2 className="w-3.5 h-3.5 stroke-[2.2]" />
+        <span>-Col</span>
+      </button>
+
+      {/* Delete Table */}
+      {isInTable && (
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={deleteTable}
+          className="h-8 px-2.5 rounded-md border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 shadow-2xs flex items-center gap-1 text-xs font-medium transition-colors cursor-pointer"
+          title="Delete entire table"
+          aria-label="Delete table"
+        >
+          <Trash2 className="w-3.5 h-3.5 text-rose-500 stroke-2" />
+          <span>Table</span>
+        </button>
+      )}
 
       {/* Divider */}
       <div className="w-px h-5 bg-slate-200 mx-1" aria-hidden="true" />
