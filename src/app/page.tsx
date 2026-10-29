@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Star, ExternalLink, Copy, Check } from 'lucide-react';
+import { htmlToMarkdown, DEFAULT_SAMPLE_HTML } from '@/utils/markdown';
 
 function GithubIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
@@ -17,6 +18,7 @@ function GithubIcon({ className = 'w-4 h-4' }: { className?: string }) {
 }
 
 type TabType = 'tiptap' | 'lexical' | 'novel';
+type OutputFormat = 'markdown' | 'html';
 
 interface LibraryMeta {
   id: TabType;
@@ -93,19 +95,12 @@ const NovelEditor = dynamic(() => import('@/components/NovelEditor'), {
   ),
 });
 
-const DEFAULT_HTML = `<p><strong>รายละเอียดผลิตภัณฑ์</strong></p>
-<p>กรุณาตรวจสอบข้อมูลก่อนสมัครใช้บริการ</p>
-<ul>
-  <li>ศึกษารายละเอียดและ<u>เงื่อนไขผลิตภัณฑ์</u></li>
-  <li>เตรียมเอกสารประกอบการสมัคร</li>
-</ul>
-<p><em>เงื่อนไขเป็นไปตามที่ธนาคารกำหนด</em></p>`.trim();
-
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('tiptap');
-  const [tiptapHtml, setTiptapHtml] = useState<string>(DEFAULT_HTML);
-  const [lexicalHtml, setLexicalHtml] = useState<string>(DEFAULT_HTML);
-  const [novelHtml, setNovelHtml] = useState<string>(DEFAULT_HTML);
+  const [outputFormat, setOutputFormat] = useState<OutputFormat>('markdown');
+  const [tiptapHtml, setTiptapHtml] = useState<string>(DEFAULT_SAMPLE_HTML);
+  const [lexicalHtml, setLexicalHtml] = useState<string>(DEFAULT_SAMPLE_HTML);
+  const [novelHtml, setNovelHtml] = useState<string>(DEFAULT_SAMPLE_HTML);
   const [copied, setCopied] = useState<boolean>(false);
   const [stars, setStars] = useState<Record<TabType, string>>({
     tiptap: '38.9k',
@@ -113,15 +108,19 @@ export default function Home() {
     novel: '16.5k',
   });
 
+  const currentHtml =
+    activeTab === 'tiptap'
+      ? tiptapHtml
+      : activeTab === 'lexical'
+      ? lexicalHtml
+      : novelHtml;
+
+  const currentMarkdown = htmlToMarkdown(currentHtml);
+  const currentOutput = outputFormat === 'markdown' ? currentMarkdown : currentHtml;
+
   const handleCopy = async () => {
     try {
-      const contentToCopy =
-        activeTab === 'tiptap'
-          ? tiptapHtml
-          : activeTab === 'lexical'
-          ? lexicalHtml
-          : novelHtml;
-      await navigator.clipboard.writeText(contentToCopy);
+      await navigator.clipboard.writeText(currentOutput);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -163,7 +162,7 @@ export default function Home() {
                 Rich Text Editor
               </h1>
               <p className="mt-1 text-sm text-slate-500">
-                Crafted with the clean toolbar style: Bold, Italic, Underline, Lists, and Clear formatting.
+                Crafted with clean toolbar style: Headings, Bold, Italic, Lists, Tables, and Markdown output.
               </p>
             </div>
 
@@ -246,28 +245,54 @@ export default function Home() {
             />
           )}
 
-          {/* Live HTML Output - Always Visible */}
+          {/* Live Markdown / HTML Output */}
           <div className="mt-6 pt-5 border-t border-slate-100 space-y-3">
-            <div className="flex items-center justify-between text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
                 <span className="font-semibold uppercase tracking-wider text-slate-700">
-                  Live HTML Output
+                  {outputFormat === 'markdown' ? 'Live Markdown Output' : 'Live HTML Output'}
                 </span>
                 <span className="text-slate-400 font-normal">
                   ({currentLib.name})
                 </span>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
+                {/* Format toggle tabs */}
+                <div className="inline-flex rounded-md bg-slate-100 p-0.5 border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setOutputFormat('markdown')}
+                    className={`px-2.5 py-0.5 text-xs font-medium rounded transition-colors cursor-pointer ${
+                      outputFormat === 'markdown'
+                        ? 'bg-white text-slate-900 shadow-2xs font-semibold'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Markdown
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOutputFormat('html')}
+                    className={`px-2.5 py-0.5 text-xs font-medium rounded transition-colors cursor-pointer ${
+                      outputFormat === 'html'
+                        ? 'bg-white text-slate-900 shadow-2xs font-semibold'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    HTML
+                  </button>
+                </div>
+
                 <button
                   type="button"
                   onClick={handleCopy}
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 rounded-md transition-colors cursor-pointer"
-                  title="Copy HTML to clipboard"
+                  title={`Copy ${outputFormat === 'markdown' ? 'Markdown' : 'HTML'} to clipboard`}
                 >
                   {copied ? (
                     <>
@@ -277,7 +302,7 @@ export default function Home() {
                   ) : (
                     <>
                       <Copy className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Copy HTML</span>
+                      <span>{outputFormat === 'markdown' ? 'Copy Markdown' : 'Copy HTML'}</span>
                     </>
                   )}
                 </button>
@@ -296,11 +321,7 @@ export default function Home() {
 
             <div className="relative group">
               <pre className="p-4 bg-slate-900 text-slate-200 rounded-xl text-xs font-mono overflow-x-auto whitespace-pre-wrap break-all leading-relaxed shadow-inner border border-slate-800">
-                {activeTab === 'tiptap'
-                  ? tiptapHtml
-                  : activeTab === 'lexical'
-                  ? lexicalHtml
-                  : novelHtml}
+                {currentOutput}
               </pre>
             </div>
           </div>

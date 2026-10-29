@@ -16,6 +16,8 @@ import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
+import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
+import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
@@ -24,7 +26,6 @@ import {
   $getSelection,
   $isRangeSelection,
   $createParagraphNode,
-  $createTextNode,
   FORMAT_TEXT_COMMAND,
   SELECTION_CHANGE_COMMAND,
   COMMAND_PRIORITY_CRITICAL,
@@ -33,16 +34,38 @@ import {
 import {
   ListNode,
   ListItemNode,
-  $createListNode,
-  $createListItemNode,
   INSERT_UNORDERED_LIST_COMMAND,
   INSERT_ORDERED_LIST_COMMAND,
   REMOVE_LIST_COMMAND,
 } from '@lexical/list';
-import { $setBlocksType, $forEachSelectedTextNode } from '@lexical/selection';
+import {
+  HeadingNode,
+  QuoteNode,
+  $createHeadingNode,
+  $createQuoteNode,
+} from '@lexical/rich-text';
+import { LinkNode, AutoLinkNode } from '@lexical/link';
+import {
+  TableNode,
+  TableCellNode,
+  TableRowNode,
+  INSERT_TABLE_COMMAND,
+} from '@lexical/table';
+import { $setBlocksType } from '@lexical/selection';
 import { $getNearestNodeOfType, mergeRegister } from '@lexical/utils';
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
-import { List, ListOrdered, Eraser } from 'lucide-react';
+import {
+  List,
+  ListOrdered,
+  Eraser,
+  Heading1,
+  Heading2,
+  Strikethrough,
+  Code,
+  Quote,
+  Table as TableIcon,
+} from 'lucide-react';
+import { DEFAULT_SAMPLE_HTML } from '@/utils/markdown';
 
 export interface LexicalEditorProps {
   initialHtml?: string;
@@ -58,32 +81,49 @@ const theme = {
     italic: 'italic',
     underline: 'underline underline-offset-2',
     strikethrough: 'line-through',
+    code: 'bg-slate-100 px-1 py-0.5 rounded text-sm font-mono text-pink-600',
   },
   list: {
     ul: 'list-disc pl-5 my-2 space-y-1',
     ol: 'list-decimal pl-5 my-2 space-y-1',
     listitem: 'pl-1 leading-relaxed text-slate-800 text-[15px]',
   },
+  heading: {
+    h1: 'text-2xl font-bold my-2 text-slate-900',
+    h2: 'text-xl font-bold my-1.5 text-slate-800',
+  },
+  quote: 'border-l-4 border-slate-300 pl-4 italic my-2 text-slate-600',
+  table: 'border-collapse border border-slate-300 my-2 w-full text-sm',
+  tableCell: 'border border-slate-300 px-3 py-1.5 text-left',
+  tableCellHeader: 'border border-slate-300 px-3 py-1.5 text-left bg-slate-50 font-semibold',
+  link: 'text-blue-600 underline underline-offset-2 hover:text-blue-800',
 };
 
-// Toolbar Component matching the exact UI in the image
+// Toolbar Component matching all editor capabilities
 function ToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
+  const [isStrikethrough, setIsStrikethrough] = useState(false);
+  const [isCode, setIsCode] = useState(false);
+  const [isH1, setIsH1] = useState(false);
+  const [isH2, setIsH2] = useState(false);
+  const [isQuote, setIsQuote] = useState(false);
   const [isBulletList, setIsBulletList] = useState(false);
   const [isOrderedList, setIsOrderedList] = useState(false);
 
   const updateToolbar = useCallback(() => {
     const selection = $getSelection();
     if ($isRangeSelection(selection)) {
-      // Update text format flags
+      // Text formats
       setIsBold(selection.hasFormat('bold'));
       setIsItalic(selection.hasFormat('italic'));
       setIsUnderline(selection.hasFormat('underline'));
+      setIsStrikethrough(selection.hasFormat('strikethrough'));
+      setIsCode(selection.hasFormat('code'));
 
-      // Update list format
+      // Node types
       const anchorNode = selection.anchor.getNode();
       const parentList = $getNearestNodeOfType(anchorNode, ListNode);
       if (parentList) {
@@ -94,6 +134,18 @@ function ToolbarPlugin() {
         setIsBulletList(false);
         setIsOrderedList(false);
       }
+
+      const heading = $getNearestNodeOfType(anchorNode, HeadingNode);
+      if (heading) {
+        setIsH1(heading.getTag() === 'h1');
+        setIsH2(heading.getTag() === 'h2');
+      } else {
+        setIsH1(false);
+        setIsH2(false);
+      }
+
+      const quote = $getNearestNodeOfType(anchorNode, QuoteNode);
+      setIsQuote(Boolean(quote));
     }
   }, []);
 
@@ -116,8 +168,36 @@ function ToolbarPlugin() {
   }, [editor, updateToolbar]);
 
   // Format Handlers
-  const handleFormatText = (format: 'bold' | 'italic' | 'underline') => {
+  const handleFormatText = (
+    format: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'code'
+  ) => {
     editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+  };
+
+  const handleToggleHeading = (level: 'h1' | 'h2') => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        if ((level === 'h1' && isH1) || (level === 'h2' && isH2)) {
+          $setBlocksType(selection, () => $createParagraphNode());
+        } else {
+          $setBlocksType(selection, () => $createHeadingNode(level));
+        }
+      }
+    });
+  };
+
+  const handleToggleQuote = () => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        if (isQuote) {
+          $setBlocksType(selection, () => $createParagraphNode());
+        } else {
+          $setBlocksType(selection, () => $createQuoteNode());
+        }
+      }
+    });
   };
 
   const handleToggleBulletList = () => {
@@ -136,23 +216,33 @@ function ToolbarPlugin() {
     }
   };
 
+  const handleInsertTable = () => {
+    editor.dispatchCommand(INSERT_TABLE_COMMAND, {
+      rows: '3',
+      columns: '3',
+      includeHeaders: true,
+    });
+  };
+
   const handleClearFormatting = () => {
     editor.update(() => {
       const selection = $getSelection();
       if ($isRangeSelection(selection)) {
-        if (selection.isCollapsed()) {
-          selection.format = 0;
-        } else {
-          // Clear all marks / inline styles
-          $forEachSelectedTextNode((node) => {
-            node.setFormat(0);
-            node.setStyle('');
-          });
-          // Unwind lists or convert blocks to normal paragraph
-          $setBlocksType(selection, () => $createParagraphNode());
-        }
+        // Clear all text formats
+        if (selection.hasFormat('bold')) selection.toggleFormat('bold');
+        if (selection.hasFormat('italic')) selection.toggleFormat('italic');
+        if (selection.hasFormat('underline')) selection.toggleFormat('underline');
+        if (selection.hasFormat('strikethrough')) selection.toggleFormat('strikethrough');
+        if (selection.hasFormat('code')) selection.toggleFormat('code');
+
+        // Reset block type to paragraph if heading or quote
+        $setBlocksType(selection, () => $createParagraphNode());
       }
     });
+
+    if (isBulletList || isOrderedList) {
+      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+    }
   };
 
   return (
@@ -166,7 +256,7 @@ function ToolbarPlugin() {
             ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs font-bold'
             : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
         }`}
-        title="Bold (Ctrl+B / Cmd+B)"
+        title="Bold"
         aria-label="Bold"
       >
         <span className="font-bold text-[14px] leading-none">B</span>
@@ -181,7 +271,7 @@ function ToolbarPlugin() {
             ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
             : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
         }`}
-        title="Italic (Ctrl+I / Cmd+I)"
+        title="Italic"
         aria-label="Italic"
       >
         <span className="italic font-serif font-bold text-[15px] leading-none">I</span>
@@ -196,12 +286,90 @@ function ToolbarPlugin() {
             ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
             : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
         }`}
-        title="Underline (Ctrl+U / Cmd+U)"
+        title="Underline"
         aria-label="Underline"
       >
         <span className="underline font-sans font-semibold text-[14px] leading-none underline-offset-2">
           U
         </span>
+      </button>
+
+      {/* Strikethrough */}
+      <button
+        type="button"
+        onClick={() => handleFormatText('strikethrough')}
+        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
+          isStrikethrough
+            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
+            : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
+        }`}
+        title="Strikethrough"
+        aria-label="Strikethrough"
+      >
+        <Strikethrough className="w-4 h-4 stroke-2" />
+      </button>
+
+      {/* Inline Code */}
+      <button
+        type="button"
+        onClick={() => handleFormatText('code')}
+        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
+          isCode
+            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
+            : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
+        }`}
+        title="Inline code"
+        aria-label="Inline code"
+      >
+        <Code className="w-4 h-4 stroke-[2.2]" />
+      </button>
+
+      {/* Divider */}
+      <div className="w-px h-5 bg-slate-200 mx-1" aria-hidden="true" />
+
+      {/* Heading 1 */}
+      <button
+        type="button"
+        onClick={() => handleToggleHeading('h1')}
+        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
+          isH1
+            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs font-bold'
+            : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
+        }`}
+        title="Heading 1 (#)"
+        aria-label="Heading 1"
+      >
+        <Heading1 className="w-4 h-4 stroke-[2.2]" />
+      </button>
+
+      {/* Heading 2 */}
+      <button
+        type="button"
+        onClick={() => handleToggleHeading('h2')}
+        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
+          isH2
+            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs font-bold'
+            : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
+        }`}
+        title="Heading 2 (##)"
+        aria-label="Heading 2"
+      >
+        <Heading2 className="w-4 h-4 stroke-[2.2]" />
+      </button>
+
+      {/* Blockquote */}
+      <button
+        type="button"
+        onClick={handleToggleQuote}
+        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
+          isQuote
+            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
+            : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
+        }`}
+        title="Blockquote (>)"
+        aria-label="Blockquote"
+      >
+        <Quote className="w-4 h-4 stroke-2" />
       </button>
 
       {/* Divider */}
@@ -216,7 +384,7 @@ function ToolbarPlugin() {
             ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
             : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
         }`}
-        title="Bullet list"
+        title="Bullet list (-)"
         aria-label="Bullet list"
       >
         <List className="w-4 h-4 stroke-[2.2]" />
@@ -231,10 +399,21 @@ function ToolbarPlugin() {
             ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
             : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
         }`}
-        title="Numbered list"
+        title="Numbered list (1.)"
         aria-label="Numbered list"
       >
         <ListOrdered className="w-4 h-4 stroke-[2.2]" />
+      </button>
+
+      {/* Table */}
+      <button
+        type="button"
+        onClick={handleInsertTable}
+        className="w-8 h-8 rounded-md border bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs flex items-center justify-center transition-colors cursor-pointer"
+        title="Insert table"
+        aria-label="Insert table"
+      >
+        <TableIcon className="w-4 h-4 stroke-2" />
       </button>
 
       {/* Divider */}
@@ -255,7 +434,7 @@ function ToolbarPlugin() {
   );
 }
 
-// Initial Content Plugin to seed sample Thai content from the image
+// Initial Content Plugin to seed sample content
 function InitialContentPlugin({
   initialHtml,
   onInit,
@@ -276,54 +455,15 @@ function InitialContentPlugin({
         return;
       }
 
-      if (initialHtml) {
-        if (typeof window !== 'undefined' && 'DOMParser' in window) {
-          const parser = new DOMParser();
-          const dom = parser.parseFromString(initialHtml, 'text/html');
-          const nodes = $generateNodesFromDOM(editor, dom);
-          root.clear();
-          root.append(...nodes);
-          return;
-        }
+      const contentToLoad = initialHtml || DEFAULT_SAMPLE_HTML;
+
+      if (typeof window !== 'undefined' && 'DOMParser' in window) {
+        const parser = new DOMParser();
+        const dom = parser.parseFromString(contentToLoad, 'text/html');
+        const nodes = $generateNodesFromDOM(editor, dom);
+        root.clear();
+        root.append(...nodes);
       }
-
-      // Default sample matching the provided screenshot exactly:
-      // Line 1: รายละเอียดผลิตภัณฑ์ (bold)
-      // Line 2: กรุณาตรวจสอบข้อมูลก่อนสมัครใช้บริการ (normal)
-      // Line 3: ศึกษารายละเอียดและเงื่อนไขผลิตภัณฑ์ (bullet item with underline)
-      // Line 4: เตรียมเอกสารประกอบการสมัคร (bullet item)
-      // Line 5: เงื่อนไขเป็นไปตามที่ธนาคารกำหนด (italic)
-      root.clear();
-
-      const p1 = $createParagraphNode();
-      const t1 = $createTextNode('รายละเอียดผลิตภัณฑ์');
-      t1.setFormat('bold');
-      p1.append(t1);
-
-      const p2 = $createParagraphNode();
-      const t2 = $createTextNode('กรุณาตรวจสอบข้อมูลก่อนสมัครใช้บริการ');
-      p2.append(t2);
-
-      const list = $createListNode('bullet');
-
-      const li1 = $createListItemNode();
-      const t3_1 = $createTextNode('ศึกษารายละเอียดและ');
-      const t3_2 = $createTextNode('เงื่อนไขผลิตภัณฑ์');
-      t3_2.setFormat('underline');
-      li1.append(t3_1, t3_2);
-
-      const li2 = $createListItemNode();
-      const t4 = $createTextNode('เตรียมเอกสารประกอบการสมัคร');
-      li2.append(t4);
-
-      list.append(li1, li2);
-
-      const p3 = $createParagraphNode();
-      const t5 = $createTextNode('เงื่อนไขเป็นไปตามที่ธนาคารกำหนด');
-      t5.setFormat('italic');
-      p3.append(t5);
-
-      root.append(p1, p2, list, p3);
     });
 
     if (onInit) {
@@ -338,7 +478,7 @@ function InitialContentPlugin({
 }
 
 export default function LexicalEditor({
-  initialHtml,
+  initialHtml = DEFAULT_SAMPLE_HTML,
   onChange,
   helperText = 'Write without personal sign-offs (e.g. ครับ/ค่ะ).',
   placeholder = 'Enter description here...',
@@ -346,7 +486,17 @@ export default function LexicalEditor({
   const initialConfig: InitialConfigType = {
     namespace: 'SampleLexicalEditor',
     theme,
-    nodes: [ListNode, ListItemNode],
+    nodes: [
+      HeadingNode,
+      QuoteNode,
+      ListNode,
+      ListItemNode,
+      LinkNode,
+      AutoLinkNode,
+      TableNode,
+      TableRowNode,
+      TableCellNode,
+    ],
     onError: (error: Error) => {
       console.error('Lexical Error:', error);
     },
@@ -387,6 +537,8 @@ export default function LexicalEditor({
             />
             <HistoryPlugin />
             <ListPlugin />
+            <TablePlugin />
+            <LinkPlugin />
             <InitialContentPlugin initialHtml={initialHtml} onInit={onChange} />
             <OnChangePlugin onChange={handleEditorChange} />
           </div>
@@ -402,4 +554,3 @@ export default function LexicalEditor({
     </div>
   );
 }
-

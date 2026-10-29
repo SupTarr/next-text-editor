@@ -14,14 +14,12 @@ selecting a suitable foundation for a larger application.
 ## Features
 
 - Compare Tiptap, Lexical, and Novel side by side through tabs.
-- Edit formatted content with bold, italic, underline, bullet-list, and
-  numbered-list controls.
+- Edit formatted content with headings, bold, italic, underline, strikethrough, inline code, blockquote, lists, and tables.
 - Clear formatting from the current selection or document content.
-- Copy the active editor's generated HTML to the clipboard.
+- View and copy live Markdown or HTML output from any active editor in real time.
 - Display live GitHub star counts for each editor repository when the GitHub
   API is available.
-- Start with a Thai-language sample document that includes common inline and
-  list formatting.
+- Start with a Thai-language sample document that includes headings, text formatting, lists, links, and tables.
 
 ## Tech stack
 

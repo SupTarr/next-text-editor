@@ -6,23 +6,26 @@ import {
   useEditor,
   StarterKit,
 } from 'novel';
-import { List, ListOrdered, Eraser } from 'lucide-react';
+import Link from '@tiptap/extension-link';
+import { TableKit } from '@tiptap/extension-table';
+import {
+  List,
+  ListOrdered,
+  Eraser,
+  Heading1,
+  Heading2,
+  Strikethrough,
+  Code,
+  Quote,
+  Table as TableIcon,
+} from 'lucide-react';
+import { DEFAULT_SAMPLE_HTML } from '@/utils/markdown';
 
 interface NovelEditorProps {
   initialContent?: string;
   onChange?: (html: string) => void;
   helperText?: string;
 }
-
-const defaultSampleContent = `
-<p><strong>รายละเอียดผลิตภัณฑ์</strong></p>
-<p>กรุณาตรวจสอบข้อมูลก่อนสมัครใช้บริการ</p>
-<ul>
-  <li>ศึกษารายละเอียดและ<u>เงื่อนไขผลิตภัณฑ์</u></li>
-  <li>เตรียมเอกสารประกอบการสมัคร</li>
-</ul>
-<p><em>เงื่อนไขเป็นไปตามที่ธนาคารกำหนด</em></p>
-`;
 
 /**
  * Top Toolbar component that connects to Novel's editor instance via `useEditor()`
@@ -36,6 +39,18 @@ function NovelToolbar() {
 
   const clearFormatting = () => {
     editor.chain().focus().unsetAllMarks().clearNodes().run();
+  };
+
+  const insertTable = () => {
+    (
+      editor.chain().focus() as unknown as {
+        insertTable: (opts: { rows: number; cols: number; withHeaderRow: boolean }) => {
+          run: () => boolean;
+        };
+      }
+    )
+      .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+      .run();
   };
 
   return (
@@ -87,6 +102,84 @@ function NovelToolbar() {
         </span>
       </button>
 
+      {/* Strikethrough */}
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleStrike().run()}
+        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors text-slate-800 cursor-pointer ${
+          editor.isActive('strike')
+            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
+            : 'bg-white border-slate-200 hover:bg-slate-50 shadow-2xs'
+        }`}
+        title="Strikethrough"
+        aria-label="Strikethrough"
+      >
+        <Strikethrough className="w-4 h-4 stroke-2" />
+      </button>
+
+      {/* Inline Code */}
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleCode().run()}
+        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors text-slate-800 cursor-pointer ${
+          editor.isActive('code')
+            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
+            : 'bg-white border-slate-200 hover:bg-slate-50 shadow-2xs'
+        }`}
+        title="Inline code"
+        aria-label="Inline code"
+      >
+        <Code className="w-4 h-4 stroke-[2.2]" />
+      </button>
+
+      {/* Divider */}
+      <div className="w-px h-5 bg-slate-200 mx-1" aria-hidden="true" />
+
+      {/* Heading 1 */}
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors text-slate-800 cursor-pointer ${
+          editor.isActive('heading', { level: 1 })
+            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs font-bold'
+            : 'bg-white border-slate-200 hover:bg-slate-50 shadow-2xs'
+        }`}
+        title="Heading 1 (#)"
+        aria-label="Heading 1"
+      >
+        <Heading1 className="w-4 h-4 stroke-[2.2]" />
+      </button>
+
+      {/* Heading 2 */}
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors text-slate-800 cursor-pointer ${
+          editor.isActive('heading', { level: 2 })
+            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs font-bold'
+            : 'bg-white border-slate-200 hover:bg-slate-50 shadow-2xs'
+        }`}
+        title="Heading 2 (##)"
+        aria-label="Heading 2"
+      >
+        <Heading2 className="w-4 h-4 stroke-[2.2]" />
+      </button>
+
+      {/* Blockquote */}
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors text-slate-800 cursor-pointer ${
+          editor.isActive('blockquote')
+            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
+            : 'bg-white border-slate-200 hover:bg-slate-50 shadow-2xs'
+        }`}
+        title="Blockquote (>)"
+        aria-label="Blockquote"
+      >
+        <Quote className="w-4 h-4 stroke-2" />
+      </button>
+
       {/* Divider */}
       <div className="w-px h-5 bg-slate-200 mx-1" aria-hidden="true" />
 
@@ -99,7 +192,7 @@ function NovelToolbar() {
             ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
             : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
         }`}
-        title="Bullet list"
+        title="Bullet list (-)"
         aria-label="Bullet list"
       >
         <List className="w-4 h-4 stroke-[2.2]" />
@@ -114,10 +207,25 @@ function NovelToolbar() {
             ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
             : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
         }`}
-        title="Numbered list"
+        title="Numbered list (1.)"
         aria-label="Numbered list"
       >
         <ListOrdered className="w-4 h-4 stroke-[2.2]" />
+      </button>
+
+      {/* Table */}
+      <button
+        type="button"
+        onClick={insertTable}
+        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
+          editor.isActive('table')
+            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
+            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
+        }`}
+        title="Insert table"
+        aria-label="Insert table"
+      >
+        <TableIcon className="w-4 h-4 stroke-2" />
       </button>
 
       {/* Divider */}
@@ -139,7 +247,7 @@ function NovelToolbar() {
 }
 
 export default function NovelEditor({
-  initialContent = defaultSampleContent,
+  initialContent = DEFAULT_SAMPLE_HTML,
   onChange,
   helperText = 'Write without personal sign-offs (e.g. ครับ/ค่ะ).',
 }: NovelEditorProps) {
@@ -156,6 +264,21 @@ export default function NovelEditor({
         },
       },
     }),
+    Link.configure({
+      openOnClick: false,
+      autolink: true,
+      HTMLAttributes: {
+        class: 'text-blue-600 underline underline-offset-2',
+      },
+    }),
+    TableKit.configure({
+      table: {
+        resizable: false,
+        HTMLAttributes: {
+          class: 'border-collapse border border-slate-300 my-2 w-full text-sm',
+        },
+      },
+    }),
   ];
 
   return (
@@ -166,7 +289,9 @@ export default function NovelEditor({
           <EditorContent
             immediatelyRender={false}
             initialContent={initialContent as unknown as import('novel').JSONContent}
-            extensions={extensions}
+            extensions={
+              extensions as unknown as Parameters<typeof EditorContent>[0]['extensions']
+            }
             className="flex flex-col"
             editorProps={{
               attributes: {
@@ -195,4 +320,3 @@ export default function NovelEditor({
     </div>
   );
 }
-
