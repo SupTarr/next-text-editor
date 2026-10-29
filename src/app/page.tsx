@@ -55,14 +55,14 @@ const LIBRARIES: LibraryMeta[] = [
   },
   {
     id: 'novel',
-    name: 'Novel.sh',
+    name: 'Novel',
     fullName: 'steven-tey/novel',
     repo: 'steven-tey/novel',
     url: 'https://github.com/steven-tey/novel',
     defaultStars: '16.5k',
     version: 'Novel v1.0.2 & Tailwind',
-    badge: 'Powered by novel.sh',
-    title: 'Novel.sh Text Editor',
+    badge: 'Powered by novel',
+    title: 'Novel Text Editor',
   },
 ];
 
