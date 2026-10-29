@@ -2,7 +2,6 @@
 
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
 import { List, ListOrdered, Eraser } from 'lucide-react';
 
 interface TiptapEditorProps {
@@ -40,7 +39,6 @@ export default function TiptapEditor({
           },
         },
       }),
-      Underline,
     ],
     content: initialContent,
     immediatelyRender: false,

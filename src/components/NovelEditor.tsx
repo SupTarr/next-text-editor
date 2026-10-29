@@ -5,7 +5,6 @@ import {
   EditorContent,
   useEditor,
   StarterKit,
-  TiptapUnderline,
 } from 'novel';
 import { List, ListOrdered, Eraser } from 'lucide-react';
 
@@ -157,7 +156,6 @@ export default function NovelEditor({
         },
       },
     }),
-    TiptapUnderline,
   ];
 
   return (
@@ -166,6 +164,7 @@ export default function NovelEditor({
       <EditorRoot>
         <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden transition-all duration-150 focus-within:border-slate-300 focus-within:shadow-sm">
           <EditorContent
+            immediatelyRender={false}
             initialContent={initialContent as unknown as import('novel').JSONContent}
             extensions={extensions}
             className="flex flex-col"
