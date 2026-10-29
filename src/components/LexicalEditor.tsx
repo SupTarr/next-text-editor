@@ -256,7 +256,13 @@ function ToolbarPlugin() {
 }
 
 // Initial Content Plugin to seed sample Thai content from the image
-function InitialContentPlugin({ initialHtml }: { initialHtml?: string }) {
+function InitialContentPlugin({
+  initialHtml,
+  onInit,
+}: {
+  initialHtml?: string;
+  onInit?: (html: string) => void;
+}) {
   const [editor] = useLexicalComposerContext();
   const isInitialized = useRef(false);
 
@@ -319,7 +325,14 @@ function InitialContentPlugin({ initialHtml }: { initialHtml?: string }) {
 
       root.append(p1, p2, list, p3);
     });
-  }, [editor, initialHtml]);
+
+    if (onInit) {
+      editor.read(() => {
+        const html = $generateHtmlFromNodes(editor, null);
+        onInit(html);
+      });
+    }
+  }, [editor, initialHtml, onInit]);
 
   return null;
 }
@@ -374,7 +387,7 @@ export default function LexicalEditor({
             />
             <HistoryPlugin />
             <ListPlugin />
-            <InitialContentPlugin initialHtml={initialHtml} />
+            <InitialContentPlugin initialHtml={initialHtml} onInit={onChange} />
             <OnChangePlugin onChange={handleEditorChange} />
           </div>
         </LexicalComposer>

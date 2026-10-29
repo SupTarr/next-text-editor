@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { Star, ExternalLink } from 'lucide-react';
+import { Star, ExternalLink, Copy, Check } from 'lucide-react';
 
 function GithubIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
@@ -93,17 +93,41 @@ const NovelEditor = dynamic(() => import('@/components/NovelEditor'), {
   ),
 });
 
+const DEFAULT_HTML = `<p><strong>รายละเอียดผลิตภัณฑ์</strong></p>
+<p>กรุณาตรวจสอบข้อมูลก่อนสมัครใช้บริการ</p>
+<ul>
+  <li>ศึกษารายละเอียดและ<u>เงื่อนไขผลิตภัณฑ์</u></li>
+  <li>เตรียมเอกสารประกอบการสมัคร</li>
+</ul>
+<p><em>เงื่อนไขเป็นไปตามที่ธนาคารกำหนด</em></p>`.trim();
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('tiptap');
-  const [tiptapHtml, setTiptapHtml] = useState<string>('');
-  const [lexicalHtml, setLexicalHtml] = useState<string>('');
-  const [novelHtml, setNovelHtml] = useState<string>('');
-  const [showRawHtml, setShowRawHtml] = useState<boolean>(false);
+  const [tiptapHtml, setTiptapHtml] = useState<string>(DEFAULT_HTML);
+  const [lexicalHtml, setLexicalHtml] = useState<string>(DEFAULT_HTML);
+  const [novelHtml, setNovelHtml] = useState<string>(DEFAULT_HTML);
+  const [copied, setCopied] = useState<boolean>(false);
   const [stars, setStars] = useState<Record<TabType, string>>({
     tiptap: '38.9k',
     lexical: '24.0k',
     novel: '16.5k',
   });
+
+  const handleCopy = async () => {
+    try {
+      const contentToCopy =
+        activeTab === 'tiptap'
+          ? tiptapHtml
+          : activeTab === 'lexical'
+          ? lexicalHtml
+          : novelHtml;
+      await navigator.clipboard.writeText(contentToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     async function fetchStars() {
@@ -222,37 +246,64 @@ export default function Home() {
             />
           )}
 
-          {/* Interactive tools */}
-          <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between text-xs">
-            <button
-              type="button"
-              onClick={() => setShowRawHtml(!showRawHtml)}
-              className="text-slate-600 hover:text-slate-900 font-medium underline underline-offset-4 cursor-pointer"
-            >
-              {showRawHtml ? 'Hide HTML Output' : 'View HTML Output'}
-            </button>
-            <a
-              href={currentLib.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              <span>{currentLib.version}</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
+          {/* Live HTML Output - Always Visible */}
+          <div className="mt-6 pt-5 border-t border-slate-100 space-y-3">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="font-semibold uppercase tracking-wider text-slate-700">
+                  Live HTML Output
+                </span>
+                <span className="text-slate-400 font-normal">
+                  ({currentLib.name})
+                </span>
+              </div>
 
-          {showRawHtml && (
-            <div className="mt-4 p-4 bg-slate-900 text-slate-200 rounded-lg text-xs font-mono overflow-x-auto">
-              <pre>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 rounded-md transition-colors cursor-pointer"
+                  title="Copy HTML to clipboard"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-emerald-700 font-semibold">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Copy HTML</span>
+                    </>
+                  )}
+                </button>
+
+                <a
+                  href={currentLib.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden sm:inline-flex items-center gap-1 text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <span>{currentLib.version}</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+
+            <div className="relative group">
+              <pre className="p-4 bg-slate-900 text-slate-200 rounded-xl text-xs font-mono overflow-x-auto whitespace-pre-wrap break-all leading-relaxed shadow-inner border border-slate-800">
                 {activeTab === 'tiptap'
-                  ? tiptapHtml || 'Edit text above to see live HTML output...'
+                  ? tiptapHtml
                   : activeTab === 'lexical'
-                  ? lexicalHtml || 'Edit text above to see live HTML output...'
-                  : novelHtml || 'Edit text above to see live HTML output...'}
+                  ? lexicalHtml
+                  : novelHtml}
               </pre>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </main>

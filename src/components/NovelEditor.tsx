@@ -175,6 +175,9 @@ export default function NovelEditor({
                   'min-h-[160px] p-5 text-slate-800 text-[15px] leading-relaxed focus:outline-hidden',
               },
             }}
+            onCreate={({ editor }) => {
+              onChange?.(editor.getHTML());
+            }}
             onUpdate={({ editor }) => {
               onChange?.(editor.getHTML());
             }}
