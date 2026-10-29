@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 
-const LexicalEditor = dynamic(() => import('@/components/LexicalEditor'), {
+const NovelEditor = dynamic(() => import('@/components/NovelEditor'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-[220px] rounded-xl border border-slate-200 bg-slate-50/50 animate-pulse flex items-center justify-center text-slate-400 text-sm">
-      Loading Lexical editor...
+      Loading Novel editor...
     </div>
   ),
 });
@@ -21,10 +21,20 @@ const TiptapEditor = dynamic(() => import('@/components/TiptapEditor'), {
   ),
 });
 
+const LexicalEditor = dynamic(() => import('@/components/LexicalEditor'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[220px] rounded-xl border border-slate-200 bg-slate-50/50 animate-pulse flex items-center justify-center text-slate-400 text-sm">
+      Loading Lexical editor...
+    </div>
+  ),
+});
+
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'lexical' | 'tiptap'>('lexical');
-  const [lexicalHtml, setLexicalHtml] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'novel' | 'tiptap' | 'lexical'>('novel');
+  const [novelHtml, setNovelHtml] = useState<string>('');
   const [tiptapHtml, setTiptapHtml] = useState<string>('');
+  const [lexicalHtml, setLexicalHtml] = useState<string>('');
   const [showRawHtml, setShowRawHtml] = useState<boolean>(false);
 
   return (
@@ -46,14 +56,14 @@ export default function Home() {
             <div className="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200 self-start sm:self-auto">
               <button
                 type="button"
-                onClick={() => setActiveTab('lexical')}
+                onClick={() => setActiveTab('novel')}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-                  activeTab === 'lexical'
+                  activeTab === 'novel'
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Lexical (Meta)
+                Novel.sh
               </button>
               <button
                 type="button"
@@ -66,6 +76,17 @@ export default function Home() {
               >
                 Tiptap
               </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('lexical')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                  activeTab === 'lexical'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Lexical (Meta)
+              </button>
             </div>
           </div>
         </div>
@@ -74,23 +95,41 @@ export default function Home() {
         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between mb-3">
             <label className="block text-sm font-semibold text-slate-800">
-              {activeTab === 'lexical' ? 'Lexical Text Editor' : 'Tiptap Text Editor'}
+              {activeTab === 'novel'
+                ? 'Novel.sh Text Editor'
+                : activeTab === 'tiptap'
+                ? 'Tiptap Text Editor'
+                : 'Lexical Text Editor'}
             </label>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium border border-slate-200">
-              {activeTab === 'lexical' ? 'Powered by Lexical' : 'Powered by Tiptap'}
+              {activeTab === 'novel'
+                ? 'Powered by novel.sh'
+                : activeTab === 'tiptap'
+                ? 'Powered by Tiptap'
+                : 'Powered by Lexical'}
             </span>
           </div>
 
-          {activeTab === 'lexical' ? (
-            <LexicalEditor
-              key="lexical-instance"
-              onChange={(html) => setLexicalHtml(html)}
+          {activeTab === 'novel' && (
+            <NovelEditor
+              key="novel-instance"
+              onChange={(html) => setNovelHtml(html)}
               helperText="Write without personal sign-offs (e.g. ครับ/ค่ะ)."
             />
-          ) : (
+          )}
+
+          {activeTab === 'tiptap' && (
             <TiptapEditor
               key="tiptap-instance"
               onChange={(html) => setTiptapHtml(html)}
+              helperText="Write without personal sign-offs (e.g. ครับ/ค่ะ)."
+            />
+          )}
+
+          {activeTab === 'lexical' && (
+            <LexicalEditor
+              key="lexical-instance"
+              onChange={(html) => setLexicalHtml(html)}
               helperText="Write without personal sign-offs (e.g. ครับ/ค่ะ)."
             />
           )}
@@ -105,16 +144,22 @@ export default function Home() {
               {showRawHtml ? 'Hide HTML Output' : 'View HTML Output'}
             </button>
             <span className="text-slate-400">
-              {activeTab === 'lexical' ? 'Meta Lexical v0.53 & Tailwind' : 'Tiptap v2 & Tailwind'}
+              {activeTab === 'novel'
+                ? 'Novel v1.0.2 & Tailwind'
+                : activeTab === 'tiptap'
+                ? 'Tiptap v2 & Tailwind'
+                : 'Meta Lexical v0.53 & Tailwind'}
             </span>
           </div>
 
           {showRawHtml && (
             <div className="mt-4 p-4 bg-slate-900 text-slate-200 rounded-lg text-xs font-mono overflow-x-auto">
               <pre>
-                {activeTab === 'lexical'
-                  ? lexicalHtml || 'Edit text above to see live HTML output...'
-                  : tiptapHtml || 'Edit text above to see live HTML output...'}
+                {activeTab === 'novel'
+                  ? novelHtml || 'Edit text above to see live HTML output...'
+                  : activeTab === 'tiptap'
+                  ? tiptapHtml || 'Edit text above to see live HTML output...'
+                  : lexicalHtml || 'Edit text above to see live HTML output...'}
               </pre>
             </div>
           )}
