@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
 import { List, ListOrdered, Eraser } from 'lucide-react';
 import { DEFAULT_BANK_SAMPLE_HTML } from '@/utils/markdown';
+import ToolbarButton from './ToolbarButton';
 
 interface TiptapSimpleEditorProps {
   initialContent?: string;
@@ -40,6 +42,7 @@ export default function TiptapSimpleEditor({
           },
         },
       }),
+      Underline,
     ],
     content: initialContent,
     immediatelyRender: false,
@@ -48,9 +51,6 @@ export default function TiptapSimpleEditor({
         class:
           'min-h-[160px] p-5 text-slate-800 text-[15px] leading-relaxed focus:outline-hidden',
       },
-    },
-    onSelectionUpdate: () => {
-      setSelectionTick((t) => t + 1);
     },
     onTransaction: () => {
       setSelectionTick((t) => t + 1);
@@ -76,107 +76,80 @@ export default function TiptapSimpleEditor({
       {/* Main Editor Card */}
       <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden transition-all duration-150 focus-within:border-slate-300 focus-within:shadow-sm">
         {/* Toolbar Header */}
-        <div className="bg-[#F8FAFC] border-b border-slate-200 px-3 py-2 flex flex-wrap items-center gap-1.5 select-none">
+        <div
+          role="toolbar"
+          aria-label="Editor toolbar"
+          className="bg-[#F8FAFC] border-b border-slate-200 px-3 py-2 flex flex-wrap items-center gap-1.5 select-none"
+        >
           {/* Bold */}
-          <button
-            type="button"
-            onMouseDown={(e) => e.preventDefault()}
+          <ToolbarButton
+            isActive={editor.isActive('bold')}
             onClick={() => editor.chain().focus().toggleBold().run()}
-            className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors text-slate-800 cursor-pointer ${
-              editor.isActive('bold')
-                ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs font-bold'
-                : 'bg-white border-slate-200 hover:bg-slate-50 shadow-2xs'
-            }`}
             title="Bold"
-            aria-label="Bold"
+            ariaLabel="Bold"
           >
             <span className="font-bold text-[14px] leading-none">B</span>
-          </button>
+          </ToolbarButton>
 
           {/* Italic */}
-          <button
-            type="button"
-            onMouseDown={(e) => e.preventDefault()}
+          <ToolbarButton
+            isActive={editor.isActive('italic')}
             onClick={() => editor.chain().focus().toggleItalic().run()}
-            className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors text-slate-800 cursor-pointer ${
-              editor.isActive('italic')
-                ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
-                : 'bg-white border-slate-200 hover:bg-slate-50 shadow-2xs'
-            }`}
             title="Italic"
-            aria-label="Italic"
+            ariaLabel="Italic"
           >
             <span className="italic font-serif font-bold text-[15px] leading-none">I</span>
-          </button>
+          </ToolbarButton>
 
           {/* Underline */}
-          <button
-            type="button"
-            onMouseDown={(e) => e.preventDefault()}
+          <ToolbarButton
+            isActive={editor.isActive('underline')}
             onClick={() => editor.chain().focus().toggleUnderline().run()}
-            className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors text-slate-800 cursor-pointer ${
-              editor.isActive('underline')
-                ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
-                : 'bg-white border-slate-200 hover:bg-slate-50 shadow-2xs'
-            }`}
             title="Underline"
-            aria-label="Underline"
+            ariaLabel="Underline"
           >
             <span className="underline font-sans font-semibold text-[14px] leading-none underline-offset-2">
               U
             </span>
-          </button>
+          </ToolbarButton>
 
           {/* Divider */}
           <div className="w-px h-5 bg-slate-200 mx-1" aria-hidden="true" />
 
           {/* Bullet List */}
-          <button
-            type="button"
-            onMouseDown={(e) => e.preventDefault()}
+          <ToolbarButton
+            isActive={editor.isActive('bulletList')}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
-            className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-              editor.isActive('bulletList')
-                ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
-            }`}
             title="Bullet list"
-            aria-label="Bullet list"
+            ariaLabel="Bullet list"
           >
             <List className="w-4 h-4 stroke-[2.2]" />
-          </button>
+          </ToolbarButton>
 
           {/* Numbered List */}
-          <button
-            type="button"
-            onMouseDown={(e) => e.preventDefault()}
+          <ToolbarButton
+            isActive={editor.isActive('orderedList')}
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-              editor.isActive('orderedList')
-                ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
-            }`}
             title="Numbered list"
-            aria-label="Numbered list"
+            ariaLabel="Numbered list"
           >
             <ListOrdered className="w-4 h-4 stroke-[2.2]" />
-          </button>
+          </ToolbarButton>
 
           {/* Divider */}
           <div className="w-px h-5 bg-slate-200 mx-1" aria-hidden="true" />
 
           {/* Clear formatting */}
-          <button
-            type="button"
-            onMouseDown={(e) => e.preventDefault()}
+          <ToolbarButton
+            variant="action"
+            className="px-3 gap-1.5"
             onClick={clearFormatting}
-            className="h-8 px-3 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
             title="Clear formatting"
-            aria-label="Clear formatting"
+            ariaLabel="Clear formatting"
           >
             <Eraser className="w-3.5 h-3.5 stroke-2 text-slate-600" />
             <span className="text-xs font-medium text-slate-700">Clear formatting</span>
-          </button>
+          </ToolbarButton>
         </div>
 
         {/* Editor Body */}

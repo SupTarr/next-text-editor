@@ -74,6 +74,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { DEFAULT_SAMPLE_HTML } from '@/utils/markdown';
+import ToolbarButton from './ToolbarButton';
 
 export interface LexicalEditorProps {
   initialHtml?: string;
@@ -300,282 +301,205 @@ function ToolbarPlugin() {
   };
 
   return (
-    <div className="bg-[#F8FAFC] border-b border-slate-200 px-3 py-2 flex flex-wrap items-center gap-1.5 select-none">
+    <div
+      role="toolbar"
+      aria-label="Editor toolbar"
+      className="bg-[#F8FAFC] border-b border-slate-200 px-3 py-2 flex flex-wrap items-center gap-1.5 select-none"
+    >
       {/* Bold */}
-      <button
-        type="button"
+      <ToolbarButton
+        isActive={isBold}
         onClick={() => handleFormatText('bold')}
-        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-          isBold
-            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs font-bold'
-            : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
-        }`}
         title="Bold"
-        aria-label="Bold"
+        ariaLabel="Bold"
       >
         <span className="font-bold text-[14px] leading-none">B</span>
-      </button>
+      </ToolbarButton>
 
       {/* Italic */}
-      <button
-        type="button"
+      <ToolbarButton
+        isActive={isItalic}
         onClick={() => handleFormatText('italic')}
-        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-          isItalic
-            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
-            : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
-        }`}
         title="Italic"
-        aria-label="Italic"
+        ariaLabel="Italic"
       >
         <span className="italic font-serif font-bold text-[15px] leading-none">I</span>
-      </button>
+      </ToolbarButton>
 
       {/* Underline */}
-      <button
-        type="button"
+      <ToolbarButton
+        isActive={isUnderline}
         onClick={() => handleFormatText('underline')}
-        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-          isUnderline
-            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
-            : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
-        }`}
         title="Underline"
-        aria-label="Underline"
+        ariaLabel="Underline"
       >
         <span className="underline font-sans font-semibold text-[14px] leading-none underline-offset-2">
           U
         </span>
-      </button>
+      </ToolbarButton>
 
       {/* Strikethrough */}
-      <button
-        type="button"
+      <ToolbarButton
+        isActive={isStrikethrough}
         onClick={() => handleFormatText('strikethrough')}
-        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-          isStrikethrough
-            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
-            : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
-        }`}
         title="Strikethrough"
-        aria-label="Strikethrough"
+        ariaLabel="Strikethrough"
       >
         <Strikethrough className="w-4 h-4 stroke-2" />
-      </button>
+      </ToolbarButton>
 
       {/* Inline Code */}
-      <button
-        type="button"
+      <ToolbarButton
+        isActive={isCode}
         onClick={() => handleFormatText('code')}
-        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-          isCode
-            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
-            : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
-        }`}
         title="Inline code"
-        aria-label="Inline code"
+        ariaLabel="Inline code"
       >
         <Code className="w-4 h-4 stroke-[2.2]" />
-      </button>
+      </ToolbarButton>
 
       {/* Divider */}
       <div className="w-px h-5 bg-slate-200 mx-1" aria-hidden="true" />
 
       {/* Heading 1 */}
-      <button
-        type="button"
+      <ToolbarButton
+        isActive={isH1}
         onClick={() => handleToggleHeading('h1')}
-        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-          isH1
-            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs font-bold'
-            : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
-        }`}
         title="Heading 1 (#)"
-        aria-label="Heading 1"
+        ariaLabel="Heading 1"
       >
         <Heading1 className="w-4 h-4 stroke-[2.2]" />
-      </button>
+      </ToolbarButton>
 
       {/* Heading 2 */}
-      <button
-        type="button"
+      <ToolbarButton
+        isActive={isH2}
         onClick={() => handleToggleHeading('h2')}
-        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-          isH2
-            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs font-bold'
-            : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
-        }`}
         title="Heading 2 (##)"
-        aria-label="Heading 2"
+        ariaLabel="Heading 2"
       >
         <Heading2 className="w-4 h-4 stroke-[2.2]" />
-      </button>
+      </ToolbarButton>
 
       {/* Blockquote */}
-      <button
-        type="button"
+      <ToolbarButton
+        isActive={isQuote}
         onClick={handleToggleQuote}
-        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-          isQuote
-            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
-            : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-2xs'
-        }`}
         title="Blockquote (>)"
-        aria-label="Blockquote"
+        ariaLabel="Blockquote"
       >
         <Quote className="w-4 h-4 stroke-2" />
-      </button>
+      </ToolbarButton>
 
       {/* Divider */}
       <div className="w-px h-5 bg-slate-200 mx-1" aria-hidden="true" />
 
       {/* Bullet List */}
-      <button
-        type="button"
+      <ToolbarButton
+        isActive={isBulletList}
         onClick={handleToggleBulletList}
-        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-          isBulletList
-            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
-            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
-        }`}
         title="Bullet list (-)"
-        aria-label="Bullet list"
+        ariaLabel="Bullet list"
       >
         <List className="w-4 h-4 stroke-[2.2]" />
-      </button>
+      </ToolbarButton>
 
       {/* Numbered List */}
-      <button
-        type="button"
+      <ToolbarButton
+        isActive={isOrderedList}
         onClick={handleToggleOrderedList}
-        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-          isOrderedList
-            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
-            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
-        }`}
         title="Numbered list (1.)"
-        aria-label="Numbered list"
+        ariaLabel="Numbered list"
       >
         <ListOrdered className="w-4 h-4 stroke-[2.2]" />
-      </button>
+      </ToolbarButton>
 
       {/* Table */}
-      <button
-        type="button"
-        onMouseDown={(e) => e.preventDefault()}
+      <ToolbarButton
+        isActive={isInTable}
         onClick={handleInsertTable}
-        className={`w-8 h-8 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-          isInTable
-            ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-2xs'
-            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
-        }`}
         title="Insert table"
-        aria-label="Insert table"
+        ariaLabel="Insert table"
       >
         <TableIcon className="w-4 h-4 stroke-2" />
-      </button>
+      </ToolbarButton>
 
       {/* Add Row */}
-      <button
-        type="button"
+      <ToolbarButton
+        variant="action"
         disabled={!isInTable}
-        onMouseDown={(e) => e.preventDefault()}
         onClick={handleAddRow}
-        className={`h-8 px-2.5 rounded-md border flex items-center gap-1 text-xs font-medium transition-colors ${
-          isInTable
-            ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 active:bg-slate-100 shadow-2xs cursor-pointer'
-            : 'bg-white/50 border-slate-200/60 text-slate-400 shadow-2xs cursor-not-allowed opacity-50'
-        }`}
         title={isInTable ? 'Add row below' : 'Add row (place cursor inside table first)'}
-        aria-label="Add row"
+        ariaLabel="Add row"
       >
         <Rows2 className="w-3.5 h-3.5 stroke-[2.2]" />
         <span>+Row</span>
-      </button>
+      </ToolbarButton>
 
       {/* Delete Row */}
-      <button
-        type="button"
+      <ToolbarButton
+        variant="dangerAction"
         disabled={!isInTable}
-        onMouseDown={(e) => e.preventDefault()}
         onClick={handleDeleteRow}
-        className={`h-8 px-2.5 rounded-md border flex items-center gap-1 text-xs font-medium transition-colors ${
-          isInTable
-            ? 'bg-white border-slate-200 text-slate-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 active:bg-rose-100 shadow-2xs cursor-pointer'
-            : 'bg-white/50 border-slate-200/60 text-slate-400 shadow-2xs cursor-not-allowed opacity-50'
-        }`}
         title={isInTable ? 'Delete current row' : 'Delete row (place cursor inside table first)'}
-        aria-label="Delete row"
+        ariaLabel="Delete row"
       >
         <Rows2 className="w-3.5 h-3.5 stroke-[2.2]" />
         <span>-Row</span>
-      </button>
+      </ToolbarButton>
 
       {/* Add Column */}
-      <button
-        type="button"
+      <ToolbarButton
+        variant="action"
         disabled={!isInTable}
-        onMouseDown={(e) => e.preventDefault()}
         onClick={handleAddColumn}
-        className={`h-8 px-2.5 rounded-md border flex items-center gap-1 text-xs font-medium transition-colors ${
-          isInTable
-            ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 active:bg-slate-100 shadow-2xs cursor-pointer'
-            : 'bg-white/50 border-slate-200/60 text-slate-400 shadow-2xs cursor-not-allowed opacity-50'
-        }`}
         title={isInTable ? 'Add column after' : 'Add column (place cursor inside table first)'}
-        aria-label="Add column"
+        ariaLabel="Add column"
       >
         <Columns2 className="w-3.5 h-3.5 stroke-[2.2]" />
         <span>+Col</span>
-      </button>
+      </ToolbarButton>
 
       {/* Delete Column */}
-      <button
-        type="button"
+      <ToolbarButton
+        variant="dangerAction"
         disabled={!isInTable}
-        onMouseDown={(e) => e.preventDefault()}
         onClick={handleDeleteColumn}
-        className={`h-8 px-2.5 rounded-md border flex items-center gap-1 text-xs font-medium transition-colors ${
-          isInTable
-            ? 'bg-white border-slate-200 text-slate-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 active:bg-rose-100 shadow-2xs cursor-pointer'
-            : 'bg-white/50 border-slate-200/60 text-slate-400 shadow-2xs cursor-not-allowed opacity-50'
-        }`}
         title={isInTable ? 'Delete current column' : 'Delete column (place cursor inside table first)'}
-        aria-label="Delete column"
+        ariaLabel="Delete column"
       >
         <Columns2 className="w-3.5 h-3.5 stroke-[2.2]" />
         <span>-Col</span>
-      </button>
+      </ToolbarButton>
 
       {/* Delete Table */}
       {isInTable && (
-        <button
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
+        <ToolbarButton
+          variant="action"
+          className="border-rose-200 text-rose-600 hover:bg-rose-50"
           onClick={handleDeleteTable}
-          className="h-8 px-2.5 rounded-md border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 shadow-2xs flex items-center gap-1 text-xs font-medium transition-colors cursor-pointer"
           title="Delete entire table"
-          aria-label="Delete table"
+          ariaLabel="Delete table"
         >
           <Trash2 className="w-3.5 h-3.5 text-rose-500 stroke-2" />
           <span>Table</span>
-        </button>
+        </ToolbarButton>
       )}
 
       {/* Divider */}
       <div className="w-px h-5 bg-slate-200 mx-1" aria-hidden="true" />
 
       {/* Clear formatting */}
-      <button
-        type="button"
+      <ToolbarButton
+        variant="action"
+        className="px-3 gap-1.5"
         onClick={handleClearFormatting}
-        className="h-8 px-3 rounded-md border border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
         title="Clear formatting"
-        aria-label="Clear formatting"
+        ariaLabel="Clear formatting"
       >
         <Eraser className="w-3.5 h-3.5 stroke-2 text-slate-600" />
         <span className="text-xs font-medium text-slate-700">Clear formatting</span>
-      </button>
+      </ToolbarButton>
     </div>
   );
 }
