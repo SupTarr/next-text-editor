@@ -56,6 +56,12 @@ function createTurndownService(): TurndownService {
     replacement: (content) => (content ? `~~${content}~~` : ''),
   });
 
+  // Underline rule (preserve <u> tag as standard Markdown has no native underline syntax)
+  td.addRule('underlineTag', {
+    filter: ['u', 'ins'],
+    replacement: (content) => (content ? `<u>${content}</u>` : ''),
+  });
+
   // Inline code rule
   td.addRule('inlineCodeExact', {
     filter: (node) => {
@@ -215,6 +221,19 @@ export function htmlToMarkdown(html: string): string {
     return html;
   }
 }
+
+/**
+ * Default sample HTML matching the minimal bank product specification
+ */
+export const DEFAULT_BANK_SAMPLE_HTML = `
+<p><strong>รายละเอียดผลิตภัณฑ์</strong></p>
+<p>กรุณาตรวจสอบข้อมูลก่อนสมัครใช้บริการ</p>
+<ul>
+  <li>ศึกษารายละเอียดและ<u>เงื่อนไขผลิตภัณฑ์</u></li>
+  <li>เตรียมเอกสารประกอบการสมัคร</li>
+</ul>
+<p>เงื่อนไขเป็นไปตามที่ธนาคารกำหนด</p>
+`.trim();
 
 /**
  * Default sample HTML matching the user's test specification

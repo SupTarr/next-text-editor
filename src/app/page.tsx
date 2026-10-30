@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Star, ExternalLink, Copy, Check } from 'lucide-react';
-import { htmlToMarkdown, DEFAULT_SAMPLE_HTML } from '@/utils/markdown';
+import { htmlToMarkdown, DEFAULT_SAMPLE_HTML, DEFAULT_BANK_SAMPLE_HTML } from '@/utils/markdown';
 
 function GithubIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
@@ -17,7 +17,7 @@ function GithubIcon({ className = 'w-4 h-4' }: { className?: string }) {
   );
 }
 
-type TabType = 'tiptap' | 'lexical' | 'novel';
+type TabType = 'tiptap-simple' | 'tiptap' | 'lexical' | 'novel';
 type OutputFormat = 'markdown' | 'html';
 
 interface LibraryMeta {
@@ -34,8 +34,8 @@ interface LibraryMeta {
 
 const LIBRARIES: LibraryMeta[] = [
   {
-    id: 'tiptap',
-    name: 'Tiptap',
+    id: 'tiptap-simple',
+    name: 'Tiptap (Simple)',
     fullName: 'ueberdosis/tiptap',
     repo: 'ueberdosis/tiptap',
     url: 'https://github.com/ueberdosis/tiptap',
@@ -43,6 +43,17 @@ const LIBRARIES: LibraryMeta[] = [
     version: 'Tiptap v3.32.1 & Tailwind',
     badge: 'Powered by Tiptap',
     title: 'Tiptap Text Editor',
+  },
+  {
+    id: 'tiptap',
+    name: 'Tiptap (Full)',
+    fullName: 'ueberdosis/tiptap',
+    repo: 'ueberdosis/tiptap',
+    url: 'https://github.com/ueberdosis/tiptap',
+    defaultStars: '38.9k',
+    version: 'Tiptap v3.32.1 & Tailwind',
+    badge: 'Powered by Tiptap',
+    title: 'Tiptap Full Editor',
   },
   {
     id: 'lexical',
@@ -67,6 +78,15 @@ const LIBRARIES: LibraryMeta[] = [
     title: 'Novel Text Editor',
   },
 ];
+
+const TiptapSimpleEditor = dynamic(() => import('@/components/TiptapSimpleEditor'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-55 rounded-xl border border-slate-200 bg-slate-50/50 animate-pulse flex items-center justify-center text-slate-400 text-sm">
+      Loading Tiptap editor...
+    </div>
+  ),
+});
 
 const TiptapEditor = dynamic(() => import('@/components/TiptapEditor'), {
   ssr: false,
@@ -96,20 +116,24 @@ const NovelEditor = dynamic(() => import('@/components/NovelEditor'), {
 });
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<TabType>('tiptap');
+  const [activeTab, setActiveTab] = useState<TabType>('tiptap-simple');
   const [outputFormat, setOutputFormat] = useState<OutputFormat>('markdown');
+  const [tiptapSimpleHtml, setTiptapSimpleHtml] = useState<string>(DEFAULT_BANK_SAMPLE_HTML);
   const [tiptapHtml, setTiptapHtml] = useState<string>(DEFAULT_SAMPLE_HTML);
   const [lexicalHtml, setLexicalHtml] = useState<string>(DEFAULT_SAMPLE_HTML);
   const [novelHtml, setNovelHtml] = useState<string>(DEFAULT_SAMPLE_HTML);
   const [copied, setCopied] = useState<boolean>(false);
   const [stars, setStars] = useState<Record<TabType, string>>({
+    'tiptap-simple': '38.9k',
     tiptap: '38.9k',
     lexical: '24.0k',
     novel: '16.5k',
   });
 
   const currentHtml =
-    activeTab === 'tiptap'
+    activeTab === 'tiptap-simple'
+      ? tiptapSimpleHtml
+      : activeTab === 'tiptap'
       ? tiptapHtml
       : activeTab === 'lexical'
       ? lexicalHtml
@@ -138,7 +162,14 @@ export default function Home() {
             if (typeof data.stargazers_count === 'number') {
               const count = data.stargazers_count;
               const formatted = count >= 1000 ? `${(count / 1000).toFixed(1)}k` : `${count}`;
-              setStars((prev) => ({ ...prev, [lib.id]: formatted }));
+              setStars((prev) => {
+                const updated = { ...prev, [lib.id]: formatted };
+                if (lib.repo === 'ueberdosis/tiptap') {
+                  updated['tiptap-simple'] = formatted;
+                  updated['tiptap'] = formatted;
+                }
+                return updated;
+              });
             }
           }
         } catch {
@@ -220,6 +251,14 @@ export default function Home() {
               {currentLib.badge}
             </span>
           </div>
+
+          {activeTab === 'tiptap-simple' && (
+            <TiptapSimpleEditor
+              key="tiptap-simple-instance"
+              onChange={(html) => setTiptapSimpleHtml(html)}
+              helperText="Write without personal sign-offs (e.g. ครับ/ค่ะ)."
+            />
+          )}
 
           {activeTab === 'tiptap' && (
             <TiptapEditor

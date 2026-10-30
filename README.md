@@ -66,13 +66,14 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```text
 src/
 ├── app/
-│   ├── globals.css       # Global styles and editor typography
-│   ├── layout.tsx        # Root layout and metadata
-│   └── page.tsx          # Editor comparison screen
+│   ├── globals.css             # Global styles and editor typography
+│   ├── layout.tsx              # Root layout and metadata
+│   └── page.tsx                # Editor comparison screen
 └── components/
-    ├── LexicalEditor.tsx # Lexical editor implementation
-    ├── NovelEditor.tsx   # Novel editor implementation
-    └── TiptapEditor.tsx  # Tiptap editor implementation
+    ├── LexicalEditor.tsx       # Lexical editor implementation
+    ├── NovelEditor.tsx         # Novel editor implementation
+    ├── TiptapEditor.tsx        # Tiptap full editor implementation
+    └── TiptapSimpleEditor.tsx  # Tiptap minimal/clean editor implementation
 ```
 
 Each editor component accepts the same basic interface:
